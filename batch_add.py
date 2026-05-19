@@ -62,6 +62,9 @@ def main():
     with open(args.txt_file, "r") as f:
         codes = [line.strip() for line in f if line.strip()]
 
+    # 默认倒序处理，实现先进先出（后加入的在同花顺自选股最上面，所以倒序插入才能维持文本原有顺序）
+    codes.reverse()
+
     print(f"=== 开始处理: {group_name} ===")
     print(f"共 {len(codes)} 只股票，并发数: {args.workers}")
 
