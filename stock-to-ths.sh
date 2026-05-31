@@ -21,17 +21,29 @@ echo "=== 开始处理: $GROUP_NAME ==="
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
-set -a
-source "$SCRIPT_DIR/.env"
-set +a
-
-output=$(python main.py 2>&1)
-echo "$output"
-
-if echo "$output" | grep -q "auth failed"; then
-    python main.py --username="$USERNAME" --password="$PASSWORD"
+PYTHON_BIN="python3"
+if [ -d "$PROJECT_DIR/.venv" ]; then
+    PYTHON_BIN="$PROJECT_DIR/.venv/bin/python"
 fi
 
-python "$PROJECT_DIR/batch_add.py" "$TXT_FILE" --workers "$WORKERS" --username "$USERNAME" --password "$PASSWORD"
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    set -a
+    source "$SCRIPT_DIR/.env"
+    set +a
+fi
+
+AUTH_ARGS=""
+if [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
+    AUTH_ARGS="--username=$USERNAME --password=$PASSWORD"
+fi
+
+output=$($PYTHON_BIN main.py $AUTH_ARGS 2>&1)
+echo "$output"
+
+if echo "$output" | grep -q "auth failed" && [ -n "$USERNAME" ] && [ -n "$PASSWORD" ]; then
+    $PYTHON_BIN main.py --username="$USERNAME" --password="$PASSWORD"
+fi
+
+$PYTHON_BIN "$PROJECT_DIR/batch_add.py" "$TXT_FILE" --workers "$WORKERS" $AUTH_ARGS
 
 echo "=== 完成 ==="
