@@ -1,21 +1,23 @@
 #!/bin/bash
 
 PROJECT_DIR="/home/pengbo/home/github/ths-favorite"
-TXT_FILE="$1"
+INPUT_FILE="$1"
 
-if [ -z "$TXT_FILE" ]; then
-    echo "用法: $0 <txt文件路径> [并发数]"
+if [ -z "$INPUT_FILE" ]; then
+    echo "用法: $0 <csv或txt文件路径> [并发数]"
     exit 1
 fi
 
-if [ ! -f "$TXT_FILE" ]; then
-    echo "错误: 文件不存在: $TXT_FILE"
+if [ ! -f "$INPUT_FILE" ]; then
+    echo "错误: 文件不存在: $INPUT_FILE"
     exit 1
 fi
 
 WORKERS="${2:-10}"
 
-GROUP_NAME=$(basename "$TXT_FILE" .txt)
+GROUP_NAME=$(basename "$INPUT_FILE")
+GROUP_NAME="${GROUP_NAME%.csv}"
+GROUP_NAME="${GROUP_NAME%.txt}"
 
 echo "=== 开始处理: $GROUP_NAME ==="
 
@@ -44,6 +46,6 @@ if echo "$output" | grep -q "auth failed" && [ -n "$USERNAME" ] && [ -n "$PASSWO
     $PYTHON_BIN main.py --username="$USERNAME" --password="$PASSWORD"
 fi
 
-$PYTHON_BIN "$PROJECT_DIR/batch_add.py" "$TXT_FILE" --workers "$WORKERS" $AUTH_ARGS
+$PYTHON_BIN "$PROJECT_DIR/batch_add.py" "$INPUT_FILE" --workers "$WORKERS" $AUTH_ARGS
 
 echo "=== 完成 ==="
