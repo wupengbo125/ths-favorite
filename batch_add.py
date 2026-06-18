@@ -130,10 +130,14 @@ def main():
 
     print("创建分组...")
     try:
-        manager.add_group(group_name)
-        print(f"已创建分组: {group_name}")
+        existing_groups = manager.get_all_groups(use_cache=False)
+        if group_name in existing_groups:
+            print(f"分组已存在: {group_name}，跳过创建。")
+        else:
+            manager.add_group(group_name)
+            print(f"已创建分组: {group_name}")
     except Exception as e:
-        print(f"分组可能已存在: {e}")
+        print(f"创建分组失败: {e}")
 
     print("添加股票到分组...")
 

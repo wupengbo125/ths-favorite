@@ -30,16 +30,21 @@ def main():
         manager_kwargs["cookie_cache_path"] = args.cookie_cache
 
     with PortfolioManager(**manager_kwargs) as manager:
-        groups = manager.get_all_groups(include_self_stocks=False)
+        # Fetch raw groups directly to handle duplicate group names
+        raw_data = manager._api.query_groups()
+        parsed_groups = manager._parse_group_list(raw_data)
+        
         deleted_count = 0
-        for name in groups.keys():
-            if name.startswith(args.prefix):
-                print(f"Deleting group: {name}")
+        for group_info in parsed_groups:
+            name = group_info.get("name")
+            group_id = group_info.get("id")
+            if name and group_id and name.startswith(args.prefix):
+                print(f"Deleting group: {name} (ID: {group_id})")
                 try:
-                    manager.delete_group(name)
+                    manager.delete_group(group_id)
                     deleted_count += 1
                 except Exception as e:
-                    print(f"Failed to delete {name}: {e}")
+                    print(f"Failed to delete {name} ({group_id}): {e}")
         print(f"Completed! Deleted {deleted_count} groups starting with '{args.prefix}'")
 
 if __name__ == "__main__":

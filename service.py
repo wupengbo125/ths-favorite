@@ -359,6 +359,8 @@ class PortfolioManager:
                 return group_obj.group_id
         if group_identifier in self._groups_cache:
             return self._groups_cache[group_identifier].group_id
+        if group_identifier.startswith("0_") or "_" in group_identifier or group_identifier.isdigit():
+            return group_identifier
         return None
 
     def _get_group_entry_by_id(self, group_id: str) -> Optional[Tuple[str, StockGroup]]:
