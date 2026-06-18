@@ -106,6 +106,12 @@ def main():
     parser.add_argument("--workers", type=int, default=10, help="并发数 (默认10)")
     parser.add_argument("--username", help="登录账号")
     parser.add_argument("--password", help="登录密码")
+    parser.add_argument(
+        "--mode",
+        choices=["create", "replace", "append"],
+        default="create",
+        help="处理同名分组的模式: create (仍新建重名分组), replace (删除已有同名分组后重新创建), append (向已有分组追加股票)",
+    )
     args = parser.parse_args()
 
     if not os.path.isfile(args.input_file):
@@ -130,10 +136,32 @@ def main():
 
     print("创建分组...")
     try:
-        manager.add_group(group_name)
-        print(f"已创建分组: {group_name}")
+        if args.mode == "replace":
+            existing_groups = manager.get_all_groups(use_cache=False)
+            if group_name in existing_groups:
+                print(f"分组已存在: {group_name}，正在删除原同名分组...")
+                raw_data = manager._api.query_groups()
+                parsed_groups = manager._parse_group_list(raw_data)
+                for g in parsed_groups:
+                    if g.get("name") == group_name:
+                        gid = g.get("id")
+                        if gid:
+                            print(f"删除同名分组 ID: {gid}")
+                            manager.delete_group(gid)
+            manager.add_group(group_name)
+            print(f"已创建新分组: {group_name}")
+        elif args.mode == "append":
+            existing_groups = manager.get_all_groups(use_cache=False)
+            if group_name in existing_groups:
+                print(f"分组已存在: {group_name}，跳过创建以追加股票。")
+            else:
+                manager.add_group(group_name)
+                print(f"已创建新分组: {group_name}")
+        else: # "create" 模式
+            manager.add_group(group_name)
+            print(f"已创建新分组: {group_name}")
     except Exception as e:
-        print(f"分组可能已存在: {e}")
+        print(f"创建/处理分组失败: {e}")
 
     print("添加股票到分组...")
 
