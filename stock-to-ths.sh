@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROJECT_DIR="/home/pengbo/home/github/ths-favorite"
+PROJECT_DIR="$github_dir/ths-favorite"
 INPUT_FILE="$1"
 
 if [ -z "$INPUT_FILE" ]; then
