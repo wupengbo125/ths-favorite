@@ -123,3 +123,7 @@ dmypy.json
 favorite.json
 *.json
 .worktrees/
+.agents/
+.claude/
+.ua/
+.pi/
